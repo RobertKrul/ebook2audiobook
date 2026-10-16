@@ -92,7 +92,15 @@ fi
 # Beispiel: DEVICE_TAG=cu128 ./run_arch_cuda.sh …
 export DEVICE_TAG="${DEVICE_TAG:-}"
 
-# ── 5. e2a.sh starten ───────────────────────────────────────────────
+# ── 5. uv-Netzwerk: pypi.nvidia.com ist langsam/instabil ────────────
+# torch-cu-Wheels ziehen nvidia-*-Pakete von pypi.nvidia.com; das ist
+# häufig der Engpass (Timeout nach ~30s uv-Default). Serielle Downloads
+# + langer Timeout beheben das in den meisten Fällen.
+export UV_HTTP_TIMEOUT="${UV_HTTP_TIMEOUT:-600}"
+export UV_CONCURRENT_DOWNLOADS="${UV_CONCURRENT_DOWNLOADS:-1}"
+export UV_CONCURRENT_BUILDS="${UV_CONCURRENT_BUILDS:-1}"
+
+# ── 6. e2a.sh starten ───────────────────────────────────────────────
 info "Starte e2a.sh (Native-Modus, CUDA)…"
 # e2a.sh installiert uv, Python-venv und torch+cuda-Abhängigkeiten beim ersten Lauf.
 exec ./e2a.sh "$@"
