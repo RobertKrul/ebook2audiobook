@@ -533,6 +533,14 @@ Default to config.json model.""")
                     from lib.gradio import theme, header_css, build_interface
                     app = build_interface(args)
                     if app is not None:
+                        # realpath resolves symlinks: a linked voices/models/ebooks/audiobooks
+                        # dir points outside the cwd and gradio would block returning its files
+                        allowed_paths = []
+                        for _p in (voices_dir, models_dir, ebooks_dir, tmp_dir, run_dir,
+                                   audiobooks_gradio_dir, audiobooks_host_dir, audiobooks_cli_dir):
+                            _rp = os.path.realpath(_p)
+                            if _rp not in allowed_paths:
+                                allowed_paths.append(_rp)
                         gr_blocks_kwargs = {
                             "debug": bool(int(os.environ.get('GRADIO_DEBUG', '0'))),
                             "show_error": debug_mode,
@@ -543,7 +551,8 @@ Default to config.json model.""")
                             "max_file_size": max_upload_size,
                             "theme": theme,
                             "css_paths": header_css,
-                            "footer_links": ["settings"]
+                            "footer_links": ["settings"],
+                            "allowed_paths": allowed_paths
                         }
                         app.queue(default_concurrency_limit=interface_concurrency_limit).launch(**gr_blocks_kwargs)
                 except OSError as e:
