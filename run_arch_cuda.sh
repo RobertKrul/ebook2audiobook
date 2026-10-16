@@ -93,9 +93,16 @@ fi
 export DEVICE_TAG="${DEVICE_TAG:-}"
 
 # ── 5. uv-Netzwerk: pypi.nvidia.com ist langsam/instabil ────────────
-# torch-cu-Wheels ziehen nvidia-*-Pakete von pypi.nvidia.com; das ist
-# häufig der Engpass (Timeout nach ~30s uv-Default). Serielle Downloads
-# + langer Timeout beheben das in den meisten Fällen.
+# torch-cu-Wheels deklarieren nvidia-*-Abhängigkeiten. Das Projekt
+# installiert torch mit `--index-url download.pytorch.org/whl/cuXXX`,
+# wodurch die nvidia-*-Wheels über pypi.nvidia.com geladen werden – oft
+# mit Timeouts. Dieselben Wheels liegen auf PyPI's CDN
+# (files.pythonhosted.org). PyPI als Extra-Index + unsafe-best-match
+# leitet die nvidia-*-Pakete dorthin um, während torch selbst weiter vom
+# PyTorch-Index kommt (z.B. torch-2.2.2+cu121).
+export UV_EXTRA_INDEX_URL="${UV_EXTRA_INDEX_URL:-https://pypi.org/simple}"
+export UV_INDEX_STRATEGY="${UV_INDEX_STRATEGY:-unsafe-best-match}"
+# Timeout/Seriell als Fallback für langsame Verbindungen.
 export UV_HTTP_TIMEOUT="${UV_HTTP_TIMEOUT:-600}"
 export UV_CONCURRENT_DOWNLOADS="${UV_CONCURRENT_DOWNLOADS:-1}"
 export UV_CONCURRENT_BUILDS="${UV_CONCURRENT_BUILDS:-1}"
