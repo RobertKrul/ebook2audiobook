@@ -10,6 +10,14 @@ theme = gr.themes.Origin(
 header_css = os.path.join(root_dir, 'header.css')
 progress_bar = gr.Progress(track_tqdm=False)
 
+def _is_within_app_root(path:str)->bool:
+    try:
+        root = os.path.abspath(os.getcwd())
+        target = os.path.abspath(path)
+        return os.path.commonpath([root, target]) == root
+    except (ValueError, TypeError):
+        return False
+
 def build_interface(args:dict)->gr.Blocks:
     from lib.classes.tts_engines.common.preset_loader import load_engine_presets
     try:
@@ -3017,11 +3025,13 @@ def build_interface(args:dict)->gr.Blocks:
                         if not os.path.exists(session['ebook']):
                             session['ebook'] = session['ebook_src'] = None
                     if isinstance(session.get('voice'), str):
-                        if not os.path.exists(session['voice']):
+                        if not os.path.exists(session['voice']) or not _is_within_app_root(session['voice']):
                             session['voice'] = None
                     if isinstance(session.get('custom_model'), str):
                         custom_model_dir = session.get('custom_model_dir')
                         if isinstance(custom_model_dir, str) and not os.path.exists(custom_model_dir):
+                            session['custom_model'] = None
+                        if isinstance(session.get('custom_model'), str) and not _is_within_app_root(session['custom_model']):
                             session['custom_model'] = None
                     if isinstance(session.get('tts_engine'), str):
                         models = load_engine_presets(session['tts_engine'])
